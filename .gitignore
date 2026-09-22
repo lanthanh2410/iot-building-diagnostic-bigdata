@@ -1,0 +1,40 @@
+# 1. Dữ liệu lớn (Tránh làm treo hoặc lỗi GitHub)
+data/raw/
+data/processed/
+*.csv
+*.parquet
+
+# Cho phép giữ lại file sample nhỏ trong data/sample để test code
+!data/sample/*.csv
+
+# 2. Mô hình máy học & Artifacts đã huấn luyện
+models/*
+# Giữ lại thư mục rỗng trên git (nếu có file .gitkeep)
+!models/.gitkeep
+
+# 3. File tạm Python & Môi trường ảo
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# 4. Checkpoint Jupyter Notebook
+.ipynb_checkpoints/
+
+# 5. Spark / Java / Log files
+derby.log
+metastore_db/
+checkpoint/
+spark-warehouse/
+*.log
+
+# 6. Cấu hình IDE cá nhân & Hệ điều hành
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
