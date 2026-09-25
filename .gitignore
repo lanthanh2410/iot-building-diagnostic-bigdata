@@ -6,6 +6,7 @@ data/processed/
 
 # Cho phép giữ lại file sample nhỏ trong data/sample để test code
 !data/sample/*.csv
+!docs/charts/tv2/*.csv
 
 # 2. Mô hình máy học & Artifacts đã huấn luyện
 models/*
