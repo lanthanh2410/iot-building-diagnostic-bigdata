@@ -1,0 +1,32 @@
+[
+    {
+        "model": "Logistic Regression",
+        "accuracy": 0.95788,
+        "macro_f1": 0.9122307254119008,
+        "weighted_f1": 0.9621879481782953,
+        "fit_time_seconds": 2.2715399999869987,
+        "inference_time_seconds": 0.06762760004494339,
+        "peak_ram_mb": 407.98828125,
+        "ram_increase_mb": 133.4921875
+    },
+    {
+        "model": "Random Forest",
+        "accuracy": 0.99304,
+        "macro_f1": 0.9822681942067389,
+        "weighted_f1": 0.993144622951841,
+        "fit_time_seconds": 24.140919200028293,
+        "inference_time_seconds": 0.19904069998301566,
+        "peak_ram_mb": 516.51171875,
+        "ram_increase_mb": 189.05859375
+    },
+    {
+        "model": "LightGBM",
+        "accuracy": 0.99064,
+        "macro_f1": 0.9766282504235152,
+        "weighted_f1": 0.9908888930574001,
+        "fit_time_seconds": 3.9485923999454826,
+        "inference_time_seconds": 0.1987165999598801,
+        "peak_ram_mb": 488.53125,
+        "ram_increase_mb": 147.90234375
+    }
+]
