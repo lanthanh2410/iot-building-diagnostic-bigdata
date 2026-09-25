@@ -54,22 +54,65 @@ def get_process_memory_mb():
     return total_rss / (1024 ** 2)
 
 
-def monitor_peak_memory(stop_event, result, interval=0.05):
-    """Theo dõi RAM liên tục và ghi nhận mức cao nhất."""
-    peak_ram = get_process_memory_mb()
+def monitor_resources(stop_event, result, interval=0.1):
+    """Theo dõi Peak RAM, Average CPU và Peak CPU khi model đang chạy."""
 
-    while not stop_event.is_set():
+    parent_process = psutil.Process(os.getpid())
+
+    # Lưu các process đang được theo dõi
+    tracked_processes = {
+        parent_process.pid: parent_process
+    }
+
+    # Khởi tạo phép đo CPU cho process chính
+    parent_process.cpu_percent(interval=None)
+
+    peak_ram = get_process_memory_mb()
+    cpu_samples = []
+
+    while not stop_event.wait(interval):
+
+        # Kiểm tra child process mới phát sinh
+        try:
+            children = parent_process.children(recursive=True)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            children = []
+
+        for child in children:
+            if child.pid not in tracked_processes:
+                try:
+                    child.cpu_percent(interval=None)
+                    tracked_processes[child.pid] = child
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+
+        total_cpu = 0.0
+        dead_processes = []
+
+        for pid, process in tracked_processes.items():
+            try:
+                total_cpu += process.cpu_percent(interval=None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                dead_processes.append(pid)
+
+        for pid in dead_processes:
+            tracked_processes.pop(pid, None)
+
+        cpu_samples.append(total_cpu)
+
         current_ram = get_process_memory_mb()
 
         if current_ram > peak_ram:
             peak_ram = current_ram
 
-        time.sleep(interval)
-
-    # Đo thêm lần cuối trước khi kết thúc
-    peak_ram = max(peak_ram, get_process_memory_mb())
-
     result["peak_ram_mb"] = peak_ram
+
+    if cpu_samples:
+        result["avg_cpu_percent"] = sum(cpu_samples) / len(cpu_samples)
+        result["peak_cpu_percent"] = max(cpu_samples)
+    else:
+        result["avg_cpu_percent"] = 0.0
+        result["peak_cpu_percent"] = 0.0
 
 
 def build_preprocessor():
@@ -183,15 +226,15 @@ def train_logistic_regression(train_df, test_df):
     ram_before = get_process_memory_mb()
 
     stop_event = threading.Event()
-    memory_result = {}
+    resource_result = {}
 
-    memory_thread = threading.Thread(
-        target=monitor_peak_memory,
-        args=(stop_event, memory_result),
+    resource_thread = threading.Thread(
+        target=monitor_resources,
+        args=(stop_event, resource_result),
         daemon=True
     )
 
-    memory_thread.start()
+    resource_thread.start()
 
     start_fit = time.perf_counter()
 
@@ -200,10 +243,16 @@ def train_logistic_regression(train_df, test_df):
     fit_time = time.perf_counter() - start_fit
 
     stop_event.set()
-    memory_thread.join()
+    resource_thread.join()
 
-    peak_ram = memory_result["peak_ram_mb"]
-    ram_increase = max(0.0, peak_ram - ram_before)
+    peak_ram = resource_result["peak_ram_mb"]
+    avg_cpu = resource_result["avg_cpu_percent"]
+    peak_cpu = resource_result["peak_cpu_percent"]
+
+    ram_increase = max(
+        0.0,
+        peak_ram - ram_before
+    )
 
     start_predict = time.perf_counter()
 
@@ -239,6 +288,9 @@ def train_logistic_regression(train_df, test_df):
     print(f"Peak RAM       : {peak_ram:.2f} MB")
     print(f"RAM increase   : {ram_increase:.2f} MB")
 
+    print(f"Average CPU    : {avg_cpu:.2f}%")
+    print(f"Peak CPU       : {peak_cpu:.2f}%")
+
     result = {
         "model": "Logistic Regression",
         "accuracy": float(accuracy),
@@ -247,7 +299,9 @@ def train_logistic_regression(train_df, test_df):
         "fit_time_seconds": float(fit_time),
         "inference_time_seconds": float(inference_time),
         "peak_ram_mb": float(peak_ram),
-        "ram_increase_mb": float(ram_increase)
+        "ram_increase_mb": float(ram_increase),
+        "avg_cpu_percent": float(avg_cpu),
+        "peak_cpu_percent": float(peak_cpu)
     }
 
     return model, result
@@ -277,15 +331,15 @@ def train_random_forest(train_df, test_df):
     ram_before = get_process_memory_mb()
 
     stop_event = threading.Event()
-    memory_result = {}
+    resource_result = {}
 
-    memory_thread = threading.Thread(
-        target=monitor_peak_memory,
-        args=(stop_event, memory_result),
+    resource_thread = threading.Thread(
+        target=monitor_resources,
+        args=(stop_event, resource_result),
         daemon=True
     )
 
-    memory_thread.start()
+    resource_thread.start()
 
     start_fit = time.perf_counter()
 
@@ -294,10 +348,16 @@ def train_random_forest(train_df, test_df):
     fit_time = time.perf_counter() - start_fit
 
     stop_event.set()
-    memory_thread.join()
+    resource_thread.join()
 
-    peak_ram = memory_result["peak_ram_mb"]
-    ram_increase = max(0.0, peak_ram - ram_before)
+    peak_ram = resource_result["peak_ram_mb"]
+    avg_cpu = resource_result["avg_cpu_percent"]
+    peak_cpu = resource_result["peak_cpu_percent"]
+
+    ram_increase = max(
+        0.0,
+        peak_ram - ram_before
+    )
 
     start_predict = time.perf_counter()
 
@@ -333,6 +393,9 @@ def train_random_forest(train_df, test_df):
     print(f"Peak RAM       : {peak_ram:.2f} MB")
     print(f"RAM increase   : {ram_increase:.2f} MB")
 
+    print(f"Average CPU    : {avg_cpu:.2f}%")
+    print(f"Peak CPU       : {peak_cpu:.2f}%")  
+
     result = {
         "model": "Random Forest",
         "accuracy": float(accuracy),
@@ -341,7 +404,9 @@ def train_random_forest(train_df, test_df):
         "fit_time_seconds": float(fit_time),
         "inference_time_seconds": float(inference_time),
         "peak_ram_mb": float(peak_ram),
-        "ram_increase_mb": float(ram_increase)
+        "ram_increase_mb": float(ram_increase),
+        "avg_cpu_percent": float(avg_cpu),
+        "peak_cpu_percent": float(peak_cpu)
     }
 
     return model, result
@@ -372,15 +437,15 @@ def train_lightgbm(train_df, test_df):
     ram_before = get_process_memory_mb()
 
     stop_event = threading.Event()
-    memory_result = {}
+    resource_result = {}
 
-    memory_thread = threading.Thread(
-        target=monitor_peak_memory,
-        args=(stop_event, memory_result),
+    resource_thread = threading.Thread(
+        target=monitor_resources,
+        args=(stop_event, resource_result),
         daemon=True
     )
 
-    memory_thread.start()
+    resource_thread.start()
 
     start_fit = time.perf_counter()
 
@@ -389,10 +454,16 @@ def train_lightgbm(train_df, test_df):
     fit_time = time.perf_counter() - start_fit
 
     stop_event.set()
-    memory_thread.join()
+    resource_thread.join()
 
-    peak_ram = memory_result["peak_ram_mb"]
-    ram_increase = max(0.0, peak_ram - ram_before)
+    peak_ram = resource_result["peak_ram_mb"]
+    avg_cpu = resource_result["avg_cpu_percent"]
+    peak_cpu = resource_result["peak_cpu_percent"]
+
+    ram_increase = max(
+        0.0,
+        peak_ram - ram_before
+    )
 
     start_predict = time.perf_counter()
 
@@ -428,6 +499,9 @@ def train_lightgbm(train_df, test_df):
     print(f"Peak RAM       : {peak_ram:.2f} MB")
     print(f"RAM increase   : {ram_increase:.2f} MB")
 
+    print(f"Average CPU    : {avg_cpu:.2f}%")
+    print(f"Peak CPU       : {peak_cpu:.2f}%")
+
     result = {
         "model": "LightGBM",
         "accuracy": float(accuracy),
@@ -436,7 +510,9 @@ def train_lightgbm(train_df, test_df):
         "fit_time_seconds": float(fit_time),
         "inference_time_seconds": float(inference_time),
         "peak_ram_mb": float(peak_ram),
-        "ram_increase_mb": float(ram_increase)
+        "ram_increase_mb": float(ram_increase),
+        "avg_cpu_percent": float(avg_cpu),
+        "peak_cpu_percent": float(peak_cpu)
     }
 
     return model, result
