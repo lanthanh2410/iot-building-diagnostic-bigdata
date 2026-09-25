@@ -44,6 +44,12 @@ python src/03_baseline_sklearn.py
 python src/05_spark_tuning.py
 ```
 
+#### Tạo đặc trưng và điền khuyết theo khu vực (Thành viên 2)
+```bash
+python src/02_feature_engineering.py --engine spark --input data/raw/11_iot_building_diagnostic.csv
+```
+Kết quả gồm tập train/test đã xử lý trong `data/processed/tv2/` và ma trận tương quan trong `docs/charts/tv2/`. Nếu chỉ có Pandas, đổi `--engine spark` thành `--engine pandas`. Xem [hướng dẫn và kết quả](docs/member2_feature_engineering.md).
+
 #### Khởi chạy Web Dashboard Demo (Streamlit)
 ```bash
 streamlit run app/app.py
