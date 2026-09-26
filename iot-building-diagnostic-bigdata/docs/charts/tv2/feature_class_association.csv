@@ -1,6 +1,0 @@
-,state_normal,state_ventilation_issue,state_thermal_issue,max_abs_class_correlation
-filter_pressure_per_airflow,-0.71779,0.89782,-0.12929,0.89782
-hvac_kw_per_airflow,-0.74214,0.82340,0.02253,0.82340
-pm25_indoor_outdoor_ratio,-0.48585,0.60312,-0.08068,0.60312
-delta_humidity_pct,-0.12259,0.13394,0.00681,0.13394
-delta_temp_c,-0.07496,0.01412,0.10512,0.10512
