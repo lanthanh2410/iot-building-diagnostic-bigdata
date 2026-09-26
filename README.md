@@ -44,6 +44,32 @@ python src/03_baseline_sklearn.py
 python src/05_spark_tuning.py
 ```
 
+#### Tạo đặc trưng và điền khuyết theo khu vực (Thành viên 2)
+```bash
+python src/02_feature_engineering.py --engine spark --input data/raw/11_iot_building_diagnostic.csv
+```
+Kết quả gồm tập train/test đã xử lý trong `data/processed/tv2/` và ma trận tương quan trong `docs/charts/tv2/`. Nếu chỉ có Pandas, đổi `--engine spark` thành `--engine pandas`. Xem [hướng dẫn và kết quả](docs/member2_feature_engineering.md).
+
+#### Spark Feature Pipeline & Tối ưu Big Data (Thành viên 4)
+- **Chạy kiểm thử nhanh trên dữ liệu mẫu (500 dòng) và đo lường Caching / Partitioning:**
+```bash
+python src/04_spark_pipeline.py --input data/sample/sample_500_rows.csv --benchmark
+```
+- **Chạy trên tập dữ liệu tổng hợp quy mô lớn (VD: 100.000 dòng):**
+```bash
+python src/04_spark_pipeline.py --synthetic-rows 100000 --benchmark
+```
+- **Chạy trên toàn bộ dữ liệu gốc (2.100.000 dòng) phân tán đa luồng:**
+```bash
+python src/04_spark_pipeline.py --input data/raw/11_iot_building_diagnostic.csv --benchmark
+```
+- **Khởi động cụm phân tán Docker Spark Cluster (Master + 2 Workers):**
+```bash
+docker compose -f docker-compose.spark.yml up -d
+python src/04_spark_pipeline.py --spark-master spark://localhost:7077
+```
+Kết quả lưu tại `models/spark_feature_pipeline/` và log đo lường tại `docs/logs/spark_pipeline_optimization.log`.
+
 #### Khởi chạy Web Dashboard Demo (Streamlit)
 ```bash
 streamlit run app/app.py
