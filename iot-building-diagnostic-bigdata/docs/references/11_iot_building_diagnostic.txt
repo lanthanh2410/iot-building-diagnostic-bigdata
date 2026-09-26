@@ -1,0 +1,46 @@
+BỘ DỮ LIỆU 01 – IOT: GIÁM SÁT CHẤT LƯỢNG KHÔNG KHÍ VÀ HỆ THỐNG THÔNG GIÓ
+================================================================================
+Tên tệp: iot_building_diagnostics.csv
+Quy mô: 2,100,000 bản ghi dữ liệu; 24 cột (23 thuộc tính đầu vào/ngữ cảnh và 1 nhãn mục tiêu).
+Mã hóa: UTF-8; dấu phân cách: dấu phẩy; hàng đầu tiên là tên cột; dấu thập phân: dấu chấm.
+
+1. BỐI CẢNH VÀ NHIỆM VỤ
+Mỗi dòng là một lần ghi nhận thông số môi trường và trạng thái thiết bị trong
+một mạng gồm 120 cảm biến tại 24 khu vực thuộc 6 tòa nhà. Bản ghi được tổ chức
+theo chu kỳ 30 phút trong năm 2025. Xây dựng mô hình phân loại trạng thái vận
+hành (diagnostic_state) từ các thuộc tính quan sát.
+Chú ý: Dữ liệu đã được mã hóa để không lộ những thông tin nhạy cảm
+
+2. TỪ ĐIỂN DỮ LIỆU
+STT | Tên cột | Kiểu | Ý nghĩa; đơn vị; hướng xử lý
+01 | reading_id | integer | Mã bản ghi duy nhất; không dùng như đặc trưng dự báo.
+02 | recorded_at | datetime/text | Thời điểm ghi nhận, YYYY-MM-DDTHH:MM; dùng để chia tập theo thời gian.
+03 | building_zone | string | Mã vị trí B01-Z01 đến B06-Z04; biến phân loại ngữ cảnh.
+04 | sensor_id | string | Mã thiết bị S0001 đến S0120; khóa nhóm để kiểm tra khả năng khái quát.
+05 | floor_number | integer | Tầng lắp đặt thiết bị, từ 1 đến 4.
+06 | occupancy_count | integer | Số người hiện diện ước tính; có một số giá trị khuyết.
+07 | outdoor_temp_c | float | Nhiệt độ ngoài trời, độ C.
+08 | outdoor_humidity_pct | float | Độ ẩm ngoài trời, %.
+09 | outdoor_pm25_ug_m3 | float | Bụi mịn PM2.5 ngoài trời, microgam/m3.
+10 | indoor_temp_c | float | Nhiệt độ trong nhà, độ C.
+11 | indoor_humidity_pct | float | Độ ẩm trong nhà, %.
+12 | co2_ppm | float | Nồng độ CO2, phần triệu (ppm).
+13 | pm25_ug_m3 | float | Nồng độ bụi mịn trong nhà, microgam/m3.
+14 | tvoc_ppb | float | Tổng hợp chất hữu cơ bay hơi (TVOC), phần tỷ; có giá trị khuyết.
+15 | air_flow_m3_h | float | Lưu lượng không khí, m3/giờ.
+16 | fan_speed_rpm | float | Tốc độ quạt, vòng/phút.
+17 | hvac_power_kw | float | Công suất hệ thống điều hòa/thông gió, kW.
+18 | filter_pressure_pa | float | Chênh lệch áp suất qua bộ lọc, Pa.
+19 | vibration_mm_s | float | Vận tốc rung của thiết bị, mm/s; có giá trị khuyết.
+20 | maintenance_days | integer | Số ngày kể từ lần bảo trì gần nhất.
+21 | window_open_pct | float | Mức độ mở cửa sổ quy đổi về %, có giá trị khuyết.
+22 | equipment_age_years | float | Tuổi thiết bị, năm.
+23 | firmware_version | string | Phiên bản phần mềm thiết bị; đặc trưng gây nhiễu có chủ đích.
+24 | diagnostic_state | string | NHÃN MỤC TIÊU: normal / ventilation_issue / thermal_issue.
+
+3. ĐỊNH NGHĨA NHÃN
+normal: trạng thái vận hành bình thường.
+ventilation_issue: trạng thái có vấn đề liên quan cấp/trao đổi không khí.
+thermal_issue: trạng thái có vấn đề liên quan điều tiết nhiệt.
+Nhãn được hình thành từ nhiều yếu tố và yếu tố ngẫu nhiên; không có một ngưỡng
+đơn nhất nào giải thích hoàn toàn nhãn. Đây là bài toán phân loại đa lớp.
