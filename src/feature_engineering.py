@@ -8,8 +8,21 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
+import os
 from pathlib import Path
 from xml.sax.saxutils import escape
+
+# Cấu hình môi trường cho Windows để tránh lỗi Timeout và winutils
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if os.name == "nt":
+    if "HADOOP_HOME" not in os.environ:
+        tools_hadoop = ROOT_DIR / "tools" / "hadoop"
+        if (tools_hadoop / "bin" / "winutils.exe").exists():
+            os.environ["HADOOP_HOME"] = str(tools_hadoop)
+            os.environ["PATH"] = str(tools_hadoop / "bin") + os.pathsep + os.environ.get("PATH", "")
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 MISSING_COLUMNS = (
     "occupancy_count", "tvoc_ppb", "vibration_mm_s", "window_open_pct"

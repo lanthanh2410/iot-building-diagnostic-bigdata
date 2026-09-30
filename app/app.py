@@ -156,6 +156,16 @@ def main():
         maintenance_days = st.number_input("🔧 Ngày chưa bảo trì", min_value=0, max_value=500, value=int(p["maintenance_days"]))
 
         st.markdown("---")
+        st.markdown("#### 🧠 Chọn Engine Chẩn Đoán")
+        engine_choice = st.radio(
+            "Mô hình AI:",
+            options=["Scikit-Learn", "Apache Spark MLlib"],
+            index=0
+        )
+        
+        engine = "spark" if "Spark" in engine_choice else "sklearn"
+
+        st.markdown("---")
         predict_btn = st.button("🚀 BẮT ĐẦU CHẨN ĐOÁN AI", type="primary")
 
     # Gom các tham số đầu vào
@@ -181,8 +191,15 @@ def main():
         "equipment_age_years": p.get("equipment_age_years", 3.0)
     }
 
-    # Thực hiện dự đoán
-    result = diagnostic_service.predict(current_params)
+    # Thực hiện dự đoán với Session State
+    if 'prediction_result' not in st.session_state:
+        st.session_state['prediction_result'] = diagnostic_service.predict(current_params, engine=engine)
+        
+    if predict_btn:
+        with st.spinner(f"Đang chạy phân tích bằng {engine_choice}..."):
+            st.session_state['prediction_result'] = diagnostic_service.predict(current_params, engine=engine)
+
+    result = st.session_state['prediction_result']
 
     # 4. GIAO DIỆN CHÍNH - 4 TABS CHUYÊN SÂU
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -227,6 +244,10 @@ def main():
                     <span class='{badge_class}'>{result["icon"]} {result["label_title"]}</span>
                     <p style='margin-top: 10px; color: #CBD5E1; font-size: 1.05rem;'>
                         Mô hình chẩn đoán với độ tin cậy: <b style='color: {result["color_hex"]}; font-size: 1.2rem;'>{confidence}%</b>
+                        <br/>
+                        <span style='font-size: 0.9rem; color: #94A3B8;'>
+                            Engine: <b>{'Apache Spark MLlib' if result.get('engine') == 'spark' else 'Scikit-Learn'}</b>
+                        </span>
                     </p>
                 </div>
                 <div style='text-align: right; color: #94A3B8;'>
