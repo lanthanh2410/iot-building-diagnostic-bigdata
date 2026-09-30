@@ -1,0 +1,38 @@
+[
+    {
+        "model": "Logistic Regression",
+        "accuracy": 0.99436,
+        "macro_f1": 0.9849866880897918,
+        "weighted_f1": 0.9944639235488995,
+        "fit_time_seconds": 3.472571999998763,
+        "inference_time_seconds": 0.0927326999953948,
+        "peak_ram_mb": 522.1484375,
+        "ram_increase_mb": 52.796875,
+        "avg_cpu_percent": 119.9095238095238,
+        "peak_cpu_percent": 375.0
+    },
+    {
+        "model": "Random Forest",
+        "accuracy": 0.99856,
+        "macro_f1": 0.9962241466557451,
+        "weighted_f1": 0.9985581196026149,
+        "fit_time_seconds": 44.65856230002828,
+        "inference_time_seconds": 0.3454624000005424,
+        "peak_ram_mb": 631.9140625,
+        "ram_increase_mb": 188.390625,
+        "avg_cpu_percent": 439.73125,
+        "peak_cpu_percent": 689.8
+    },
+    {
+        "model": "LightGBM",
+        "accuracy": 0.99876,
+        "macro_f1": 0.9967663252447657,
+        "weighted_f1": 0.9987617090557666,
+        "fit_time_seconds": 9.177209099987522,
+        "inference_time_seconds": 0.32029529998544604,
+        "peak_ram_mb": 571.53515625,
+        "ram_increase_mb": 134.6015625,
+        "avg_cpu_percent": 252.01379310344825,
+        "peak_cpu_percent": 443.3
+    }
+]
