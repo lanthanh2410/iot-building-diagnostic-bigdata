@@ -1,0 +1,120 @@
+================================================================================
+ BÁO CÁO THỰC NGHIỆM TỐI ƯU HÓA HIỆU NĂNG BIG DATA SPARK PIPELINE 
+ Thời gian thực hiện : 2026-09-26 12:50:15
+ Quy mô dữ liệu test : 500 bản ghi | 29 cột
+ Cấu hình phần cứng  : 24 Logical Cores | Spark 4.2.0
+================================================================================
+
+>>> [THỰC NGHIỆM 1] Đo lường tác động của Caching (MEMORY_AND_DISK vs No Cache)...
+Kịch bản: Thực hiện 3 tác vụ tính toán thống kê (Aggregation + Pipeline Transform) lặp lại.
+
+ • [Kịch bản A - NO CACHE]:
+   - Tổng thời gian thực thi : 3.0717 giây
+   - Tốc độ xử lý (Throughput): 163 records/giây
+   - RAM sử dụng thêm        : 0.68 MB
+
+ • [Kịch bản B - WITH CACHE (MEMORY_AND_DISK)]:
+   - Tổng thời gian thực thi : 1.3567 giây
+   - Tốc độ xử lý (Throughput): 369 records/giây
+   - RAM sử dụng thêm        : 0.10 MB
+   -> HIỆU QUẢ CACHING       : Tăng tốc 2.26x lần (55.8% thời gian tiết kiệm)
+
+>>> [THỰC NGHIỆM 2] Đo lường tác động của Phân vùng (Partitioning) & Shuffle Tuning...
+Kịch bản: Thực hiện GroupBy Aggregation & Join trên 2 mức phân vùng khác nhau.
+
+ • [Kịch bản C - Non-optimal Partitions (2 partitions)]:
+   - Thời gian GroupBy/Shuffle: 0.2218 giây
+ • [Kịch bản D - Optimized Partitions (48 partitions = 24 cores * 2)]:
+   - Thời gian GroupBy/Shuffle: 0.3590 giây
+   -> HIỆU QUẢ PHÂN VÙNG      : Tăng tốc 0.62x lần
+
+>>> [BẢNG KẾT QUẢ ĐỐI ĐẦU HIỆU NĂNG]
+| Tiêu chí Thử nghiệm | Cấu hình Thử nghiệm | Thời gian (giây) | Throughput (dòng/s) | Tốc độ tương đối |
+| :--- | :--- | :---: | :---: | :---: |
+| Caching Effect | No Cache (Đọc lại từ đầu) | 3.0717s | 163 | 1.00x (Gốc) |
+| Caching Effect | MEMORY_AND_DISK | 1.3567s | 369 | **2.26x nhanh hơn** |
+| Partitioning Effect | 2 Partitions (Chưa tối ưu) | 0.2218s | 2,254 | 1.00x (Gốc) |
+| Partitioning Effect | 48 Partitions (Tối ưu theo Cores) | 0.3590s | 1,393 | **0.62x nhanh hơn** |
+
+================================================================================
+
+================================================================================
+ BÁO CÁO THỰC NGHIỆM TỐI ƯU HÓA HIỆU NĂNG BIG DATA SPARK PIPELINE 
+ Thời gian thực hiện : 2026-09-26 12:53:15
+ Quy mô dữ liệu test : 500 bản ghi | 29 cột
+ Cấu hình phần cứng  : 24 Logical Cores | Spark 4.2.0
+================================================================================
+
+>>> [THỰC NGHIỆM 1] Đo lường tác động của Caching (MEMORY_AND_DISK vs No Cache)...
+Kịch bản: Thực hiện 3 tác vụ tính toán thống kê (Aggregation + Pipeline Transform) lặp lại.
+
+ • [Kịch bản A - NO CACHE]:
+   - Tổng thời gian thực thi : 3.0935 giây
+   - Tốc độ xử lý (Throughput): 162 records/giây
+   - RAM sử dụng thêm        : 0.53 MB
+
+ • [Kịch bản B - WITH CACHE (MEMORY_AND_DISK)]:
+   - Tổng thời gian thực thi : 1.1510 giây
+   - Tốc độ xử lý (Throughput): 434 records/giây
+   - RAM sử dụng thêm        : 0.10 MB
+   -> HIỆU QUẢ CACHING       : Tăng tốc 2.69x lần (62.8% thời gian tiết kiệm)
+
+>>> [THỰC NGHIỆM 2] Đo lường tác động của Phân vùng (Partitioning) & Shuffle Tuning...
+Kịch bản: Thực hiện GroupBy Aggregation & Join trên 2 mức phân vùng khác nhau.
+
+ • [Kịch bản C - Non-optimal Partitions (2 partitions)]:
+   - Thời gian GroupBy/Shuffle: 0.2251 giây
+ • [Kịch bản D - Optimized Partitions (48 partitions = 24 cores * 2)]:
+   - Thời gian GroupBy/Shuffle: 0.3402 giây
+   -> HIỆU QUẢ PHÂN VÙNG      : Tăng tốc 0.66x lần
+
+>>> [BẢNG KẾT QUẢ ĐỐI ĐẦU HIỆU NĂNG]
+| Tiêu chí Thử nghiệm | Cấu hình Thử nghiệm | Thời gian (giây) | Throughput (dòng/s) | Tốc độ tương đối |
+| :--- | :--- | :---: | :---: | :---: |
+| Caching Effect | No Cache (Đọc lại từ đầu) | 3.0935s | 162 | 1.00x (Gốc) |
+| Caching Effect | MEMORY_AND_DISK | 1.1510s | 434 | **2.69x nhanh hơn** |
+| Partitioning Effect | 2 Partitions (Chưa tối ưu) | 0.2251s | 2,221 | 1.00x (Gốc) |
+| Partitioning Effect | 48 Partitions (Tối ưu theo Cores) | 0.3402s | 1,470 | **0.66x nhanh hơn** |
+
+================================================================================
+
+================================================================================
+ BÁO CÁO THỰC NGHIỆM TỐI ƯU HÓA HIỆU NĂNG BIG DATA SPARK PIPELINE 
+ Thời gian thực hiện : 2026-09-26 13:06:53
+ Quy mô dữ liệu test : 100,000 bản ghi | 24 cột
+ Cấu hình phần cứng  : 24 Logical Cores | Spark 4.2.0
+================================================================================
+
+>>> [THỰC NGHIỆM 1] Đo lường tác động của Caching (MEMORY_AND_DISK vs No Cache)...
+Kịch bản: Thực hiện 3 tác vụ tính toán thống kê (Aggregation + Pipeline Transform) lặp lại.
+
+ • [Kịch bản A - NO CACHE]:
+   - Tổng thời gian thực thi : 117.9261 giây
+   - Tốc độ xử lý (Throughput): 848 records/giây
+   - RAM sử dụng thêm        : -0.01 MB
+
+ • [Kịch bản B - WITH CACHE (MEMORY_AND_DISK)]:
+   - Tổng thời gian thực thi : 1.6991 giây
+   - Tốc độ xử lý (Throughput): 58,856 records/giây
+   - RAM sử dụng thêm        : 0.00 MB
+   -> HIỆU QUẢ CACHING       : Tăng tốc 69.41x lần (98.6% thời gian tiết kiệm)
+
+>>> [THỰC NGHIỆM 2] Đo lường tác động của Phân vùng (Partitioning) & Shuffle Tuning...
+Kịch bản: Thực hiện GroupBy Aggregation & Join trên 2 mức phân vùng khác nhau.
+
+ • [Kịch bản C - Non-optimal Partitions (2 partitions)]:
+   - Thời gian GroupBy/Shuffle: 20.1908 giây
+ • [Kịch bản D - Optimized Partitions (48 partitions = 24 cores * 2)]:
+   - Thời gian GroupBy/Shuffle: 19.9486 giây
+   -> HIỆU QUẢ PHÂN VÙNG      : Tăng tốc 1.01x lần
+
+>>> [BẢNG KẾT QUẢ ĐỐI ĐẦU HIỆU NĂNG]
+| Tiêu chí Thử nghiệm | Cấu hình Thử nghiệm | Thời gian (giây) | Throughput (dòng/s) | Tốc độ tương đối |
+| :--- | :--- | :---: | :---: | :---: |
+| Caching Effect | No Cache (Đọc lại từ đầu) | 117.9261s | 848 | 1.00x (Gốc) |
+| Caching Effect | MEMORY_AND_DISK | 1.6991s | 58,856 | **69.41x nhanh hơn** |
+| Partitioning Effect | 2 Partitions (Chưa tối ưu) | 20.1908s | 4,953 | 1.00x (Gốc) |
+| Partitioning Effect | 48 Partitions (Tối ưu theo Cores) | 19.9486s | 5,013 | **1.01x nhanh hơn** |
+
+================================================================================
+
