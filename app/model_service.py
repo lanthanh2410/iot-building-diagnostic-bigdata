@@ -9,7 +9,9 @@ import joblib
 import numpy as np
 import pandas as pd
 
-MODEL_PATH = "models/rf_baseline.pkl"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "rf_baseline.pkl")
+MODEL_PATH = DEFAULT_MODEL_PATH if os.path.exists(DEFAULT_MODEL_PATH) else "models/rf_baseline.pkl"
 
 LABEL_NAMES = {
     0: ("Bình Thường (Normal)", "normal", "#22C55E", "🟢"),
