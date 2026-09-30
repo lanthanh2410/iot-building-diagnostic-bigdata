@@ -1,10 +1,17 @@
+"""Command line entry point for member 2 feature engineering.
+
+Examples:
+    python src/02_feature_engineering.py --engine spark --input data/raw/11_iot_building_diagnostic.csv
+    python src/02_feature_engineering.py --engine pandas --input data/raw/11_iot_building_diagnostic.csv
 """
-Thành viên 2: Đặc trưng Vật lý (Feature Engineering) & Xử lý Missing Values.
-Nhiệm vụ:
-- Điền khuyết (Imputation) bằng median theo building_zone.
-- Kỹ nghệ đặc trưng nhiệt độ & độ ẩm, bụi, hệ thống HVAC.
-"""
-import os
-os.makedirs("data/processed", exist_ok=True)
+
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.feature_engineering import main
+
+
 if __name__ == "__main__":
-    print("Chạy Module Feature Engineering...")
+    main()

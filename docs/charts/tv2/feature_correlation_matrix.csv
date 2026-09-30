@@ -1,0 +1,9 @@
+,delta_temp_c,delta_humidity_pct,pm25_indoor_outdoor_ratio,filter_pressure_per_airflow,hvac_kw_per_airflow,state_normal,state_ventilation_issue,state_thermal_issue
+delta_temp_c,1.00000,-0.43628,0.01110,0.04153,0.04244,-0.07496,0.01412,0.10512
+delta_humidity_pct,-0.43628,1.00000,0.07189,0.09916,0.10082,-0.12259,0.13394,0.00681
+pm25_indoor_outdoor_ratio,0.01110,0.07189,1.00000,0.55457,0.50735,-0.48585,0.60312,-0.08068
+filter_pressure_per_airflow,0.04153,0.09916,0.55457,1.00000,0.90101,-0.71779,0.89782,-0.12929
+hvac_kw_per_airflow,0.04244,0.10082,0.50735,0.90101,1.00000,-0.74214,0.82340,0.02253
+state_normal,-0.07496,-0.12259,-0.48585,-0.71779,-0.74214,1.00000,-0.80798,-0.47943
+state_ventilation_issue,0.01412,0.13394,0.60312,0.89782,0.82340,-0.80798,1.00000,-0.12970
+state_thermal_issue,0.10512,0.00681,-0.08068,-0.12929,0.02253,-0.47943,-0.12970,1.00000
