@@ -38,3 +38,6 @@ spark-warehouse/
 .idea/
 .DS_Store
 Thumbs.db
+.codegraph/
+.claude/
+.agents/
