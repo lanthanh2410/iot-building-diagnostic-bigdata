@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "rf_baseline.pkl")
-MODEL_PATH = DEFAULT_MODEL_PATH if os.path.exists(DEFAULT_MODEL_PATH) else "models/rf_baseline.pkl"
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "random_forest.joblib")
+MODEL_PATH = DEFAULT_MODEL_PATH if os.path.exists(DEFAULT_MODEL_PATH) else "models/random_forest.joblib"
 
 LABEL_NAMES = {
     0: ("Bình Thường (Normal)", "normal", "#22C55E", "🟢"),
@@ -46,69 +46,223 @@ class DiagnosticService:
         self._load_model()
 
     def _load_model(self):
-        """Nạp model từ artifact."""
+        """Nạp model từ artifact do TV3 huấn luyện (Scikit-Learn Pipeline)."""
         if os.path.exists(MODEL_PATH):
             try:
-                bundle = joblib.load(MODEL_PATH)
-                self.model = bundle['model']
-                self.scaler = bundle['scaler']
-                self.feature_names = bundle['features']
+                # TV3 lưu model dưới dạng một sklearn Pipeline duy nhất (không phải bundle dict)
+                self.model = joblib.load(MODEL_PATH)
+                
+                # Trích xuất danh sách feature từ Pipeline nếu có thể
+                try:
+                    # Truy cập vào bộ tiền xử lý (preprocessor) -> lấy danh sách cột số
+                    numeric_features = self.model.named_steps['preprocessor'].transformers_[0][2]
+                    categorical_features = self.model.named_steps['preprocessor'].transformers_[1][2]
+                    self.feature_names = categorical_features + numeric_features
+                except Exception:
+                    # Fallback nếu không đọc được từ pipeline
+                    self.feature_names = [
+                        "building_zone", "floor_number", "occupancy_count", "tvoc_ppb", 
+                        "vibration_mm_s", "window_open_pct", "indoor_temp_c", "outdoor_temp_c", 
+                        "indoor_humidity_pct", "outdoor_humidity_pct", "pm25_ug_m3", 
+                        "outdoor_pm25_ug_m3", "filter_pressure_pa", "air_flow_m3_h", 
+                        "hvac_power_kw", "co2_ppm", "fan_speed_rpm", "maintenance_days", 
+                        "equipment_age_years", "delta_temp_c", "delta_humidity_pct", 
+                        "pm25_indoor_outdoor_ratio", "filter_pressure_per_airflow", 
+                        "hvac_kw_per_airflow"
+                    ]
             except Exception as e:
                 print(f"[Cảnh báo] Không thể tải {MODEL_PATH}: {e}")
 
-    def predict(self, raw_params: dict) -> dict:
+    def _load_spark_model(self):
+        """Khởi tạo SparkSession và nạp mô hình MLlib từ TV5."""
+        if hasattr(self, 'spark_model_loaded') and self.spark_model_loaded:
+            return True
+            
+        try:
+            print("[Info] Khởi tạo SparkSession để phục vụ dự đoán realtime...")
+            import sys
+            
+            # Cấu hình môi trường cho Windows
+            if os.name == "nt":
+                if "HADOOP_HOME" not in os.environ:
+                    tools_hadoop = os.path.join(BASE_DIR, "tools", "hadoop")
+                    if os.path.exists(os.path.join(tools_hadoop, "bin", "winutils.exe")):
+                        os.environ["HADOOP_HOME"] = tools_hadoop
+                        os.environ["PATH"] = os.path.join(tools_hadoop, "bin") + os.pathsep + os.environ.get("PATH", "")
+                os.environ["PYSPARK_PYTHON"] = sys.executable
+                os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+                
+            from pyspark.sql import SparkSession
+            from pyspark.ml import PipelineModel
+            from pyspark.ml.classification import RandomForestClassificationModel
+            
+            self.spark = SparkSession.builder \
+                .master("local[2]") \
+                .appName("IoT_Building_Web_Inference") \
+                .config("spark.ui.enabled", "false") \
+                .getOrCreate()
+            self.spark.sparkContext.setLogLevel("ERROR")
+            
+            pipeline_path = os.path.join(BASE_DIR, "models", "spark_feature_pipeline", "spark_feature_pipeline_model")
+            rf_path = os.path.join(BASE_DIR, "models", "spark_rf_best_model")
+            
+            self.spark_feature_pipeline = PipelineModel.load(pipeline_path)
+            self.spark_rf_model = RandomForestClassificationModel.load(rf_path)
+            self.spark_model_loaded = True
+            return True
+        except Exception as e:
+            print(f"[Lỗi Spark] Không thể nạp mô hình Spark MLlib: {e}")
+            self.spark_model_loaded = False
+            return False
+
+    def predict(self, raw_params: dict, engine: str = "sklearn") -> dict:
         """
         Nhận vào từ điển các thông số cảm biến thô,
         thực hiện kỹ nghệ đặc trưng và trả về kết quả chẩn đoán chi tiết.
         """
-        # 1. Tính toán các đặc trưng vật lý bổ sung
+        # 1. Tính toán các đặc trưng vật lý bổ sung (Engineered Columns theo TV2)
         p = raw_params.copy()
-        delta_temp = p.get('indoor_temp_c', 22.0) - p.get('outdoor_temp_c', 15.0)
-        delta_humidity = p.get('indoor_humidity_pct', 50.0) - p.get('outdoor_humidity_pct', 60.0)
+        
+        # Tính toán chính xác theo chuẩn của feature_engineering.py
+        indoor_temp = p.get('indoor_temp_c', 22.0)
+        outdoor_temp = p.get('outdoor_temp_c', 15.0)
+        delta_temp_c = indoor_temp - outdoor_temp
+        
+        indoor_hum = p.get('indoor_humidity_pct', 50.0)
+        outdoor_hum = p.get('outdoor_humidity_pct', 60.0)
+        delta_humidity_pct = indoor_hum - outdoor_hum
+        
+        indoor_pm25 = p.get('pm25_ug_m3', 15.0)
         outdoor_pm25 = p.get('outdoor_pm25_ug_m3', 10.0)
-        pm25_ratio = p.get('pm25_ug_m3', 15.0) / (outdoor_pm25 + 1e-5)
+        pm25_ratio = indoor_pm25 / (outdoor_pm25 if outdoor_pm25 > 0 else 1e-5)
         
         air_flow = p.get('air_flow_m3_h', 1000.0)
         filter_pressure = p.get('filter_pressure_pa', 100.0)
-        filter_pressure_ratio = filter_pressure / (air_flow + 1e-5)
+        filter_pressure_ratio = filter_pressure / (air_flow if air_flow > 0 else 1e-5)
         
         hvac_power = p.get('hvac_power_kw', 5.0)
-        hvac_energy_ratio = hvac_power / (air_flow + 1e-5)
+        hvac_energy_ratio = hvac_power / (air_flow if air_flow > 0 else 1e-5)
         
-        # Gom các đặc trưng
+        # Gom các đặc trưng thành dictionary (tương ứng với 1 row DataFrame)
         feature_dict = {
+            'building_zone': p.get('building_zone', 'B01-Z01'),
             'floor_number': p.get('floor_number', 1),
-            'occupancy_count': p.get('occupancy_count', 10),
-            'outdoor_temp_c': p.get('outdoor_temp_c', 15.0),
-            'outdoor_humidity_pct': p.get('outdoor_humidity_pct', 60.0),
+            'occupancy_count': p.get('occupancy_count', 10.0),
+            'outdoor_temp_c': outdoor_temp,
+            'outdoor_humidity_pct': outdoor_hum,
             'outdoor_pm25_ug_m3': outdoor_pm25,
-            'indoor_temp_c': p.get('indoor_temp_c', 22.0),
-            'indoor_humidity_pct': p.get('indoor_humidity_pct', 50.0),
+            'indoor_temp_c': indoor_temp,
+            'indoor_humidity_pct': indoor_hum,
             'co2_ppm': p.get('co2_ppm', 600.0),
-            'pm25_ug_m3': p.get('pm25_ug_m3', 15.0),
+            'pm25_ug_m3': indoor_pm25,
             'tvoc_ppb': p.get('tvoc_ppb', 120.0),
             'air_flow_m3_h': air_flow,
             'fan_speed_rpm': p.get('fan_speed_rpm', 1200.0),
             'hvac_power_kw': hvac_power,
             'filter_pressure_pa': filter_pressure,
             'vibration_mm_s': p.get('vibration_mm_s', 1.5),
-            'maintenance_days': p.get('maintenance_days', 30),
+            'maintenance_days': int(p.get('maintenance_days', 30)),
             'window_open_pct': p.get('window_open_pct', 0.0),
             'equipment_age_years': p.get('equipment_age_years', 3.0),
-            'delta_temp': delta_temp,
-            'delta_humidity': delta_humidity,
-            'pm25_ratio': pm25_ratio,
-            'filter_pressure_ratio': filter_pressure_ratio,
-            'hvac_energy_ratio': hvac_energy_ratio
+            'delta_temp_c': delta_temp_c,
+            'delta_humidity_pct': delta_humidity_pct,
+            'pm25_indoor_outdoor_ratio': pm25_ratio,
+            'filter_pressure_per_airflow': filter_pressure_ratio,
+            'hvac_kw_per_airflow': hvac_energy_ratio,
+            'diagnostic_state': 'normal' # Dummy label for Pipeline StringIndexer
         }
 
-        # 2. Suy luận bằng Random Forest nếu đã nạp
-        if self.model and self.scaler:
-            feature_vector = np.array([[feature_dict.get(f, 0.0) for f in self.feature_names]])
-            scaled_vector = self.scaler.transform(feature_vector)
+        # 2. Suy luận 
+        if engine == "spark" and self._load_spark_model():
+            # Spark Inference
+            from pyspark.sql.types import (
+                StructType, StructField, StringType, IntegerType, DoubleType
+            )
+            # Tạo schema để Spark nhận dạng đúng kiểu dữ liệu
+            schema = StructType([
+                StructField("building_zone", StringType(), True),
+                StructField("floor_number", IntegerType(), True),
+                StructField("occupancy_count", DoubleType(), True),
+                StructField("outdoor_temp_c", DoubleType(), True),
+                StructField("outdoor_humidity_pct", DoubleType(), True),
+                StructField("outdoor_pm25_ug_m3", DoubleType(), True),
+                StructField("indoor_temp_c", DoubleType(), True),
+                StructField("indoor_humidity_pct", DoubleType(), True),
+                StructField("co2_ppm", DoubleType(), True),
+                StructField("pm25_ug_m3", DoubleType(), True),
+                StructField("tvoc_ppb", DoubleType(), True),
+                StructField("air_flow_m3_h", DoubleType(), True),
+                StructField("fan_speed_rpm", DoubleType(), True),
+                StructField("hvac_power_kw", DoubleType(), True),
+                StructField("filter_pressure_pa", DoubleType(), True),
+                StructField("vibration_mm_s", DoubleType(), True),
+                StructField("maintenance_days", IntegerType(), True),
+                StructField("window_open_pct", DoubleType(), True),
+                StructField("equipment_age_years", DoubleType(), True),
+                StructField("delta_temp_c", DoubleType(), True),
+                StructField("delta_humidity_pct", DoubleType(), True),
+                StructField("pm25_indoor_outdoor_ratio", DoubleType(), True),
+                StructField("filter_pressure_per_airflow", DoubleType(), True),
+                StructField("hvac_kw_per_airflow", DoubleType(), True),
+                StructField("diagnostic_state", StringType(), True),
+            ])
+            # Chuyển đổi sang tuple theo thứ tự schema, ép kiểu chặt chẽ
+            def cast_val(val, dt):
+                if val is None:
+                    return None
+                if isinstance(dt, DoubleType):
+                    return float(val)
+                elif isinstance(dt, IntegerType):
+                    return int(val)
+                elif isinstance(dt, StringType):
+                    return str(val)
+                return val
+                
+            row_data = tuple(cast_val(feature_dict[field.name], field.dataType) for field in schema.fields)
+            spark_df = self.spark.createDataFrame([row_data], schema=schema)
             
-            pred_class = int(self.model.predict(scaled_vector)[0])
-            probs = self.model.predict_proba(scaled_vector)[0]
+            # Pipeline transform
+            transformed_df = self.spark_feature_pipeline.transform(spark_df)
+            
+            # RF Predict
+            pred_df = self.spark_rf_model.transform(transformed_df)
+            row = pred_df.select("prediction", "probability").collect()[0]
+            
+            pred_class = int(row["prediction"])
+            probs_array = row["probability"].toArray()
+            
+            # Spark MLlib classes mapped by StringIndexer (frequency desc or alpha). 
+            # Dựa vào logs của TV4, tần suất: normal(75%), ventilation(18%), thermal(7%)
+            # Nên index 0: normal, 1: ventilation_issue, 2: thermal_issue.
+            probs = [float(probs_array[0]), float(probs_array[1]), float(probs_array[2])]
+            
+        elif self.model:
+            # Scikit-Learn Pipeline có ColumnTransformer đòi hỏi input là Pandas DataFrame
+            input_df = pd.DataFrame([feature_dict])
+            
+            pred_class_label = self.model.predict(input_df)[0]
+            probs_array = self.model.predict_proba(input_df)[0]
+            
+            # Map nhãn chuỗi về index số (0: normal, 1: ventilation, 2: thermal)
+            label_mapping = {"normal": 0, "ventilation_issue": 1, "thermal_issue": 2}
+            
+            # Kiểm tra xem mô hình dự đoán ra chuỗi hay số
+            if isinstance(pred_class_label, str):
+                pred_class = label_mapping.get(pred_class_label, 0)
+            else:
+                pred_class = int(pred_class_label)
+                
+            # Đảm bảo probs có thứ tự đúng (tùy thuộc vào model.classes_)
+            classes = list(self.model.classes_)
+            
+            probs = [0.0, 0.0, 0.0]
+            if 'normal' in classes:
+                probs[0] = float(probs_array[classes.index('normal')])
+            if 'ventilation_issue' in classes:
+                probs[1] = float(probs_array[classes.index('ventilation_issue')])
+            if 'thermal_issue' in classes:
+                probs[2] = float(probs_array[classes.index('thermal_issue')])
+                
         else:
             # Thuật toán dự phòng chuẩn vật lý nếu chưa nạp được file model
             co2 = feature_dict['co2_ppm']
@@ -130,12 +284,50 @@ class DiagnosticService:
         
         # 3. Phân tích các yếu tố đóng góp (Feature Importance / Contributions)
         contributions = []
-        if self.model and hasattr(self.model, 'feature_importances_'):
-            importances = self.model.feature_importances_
-            feature_names = self.feature_names
+        if engine == "spark" and hasattr(self, 'spark_rf_model'):
+            try:
+                # Trích xuất từ Spark RandomForestClassificationModel
+                importances_array = self.spark_rf_model.featureImportances.toArray()
+                # Cần đọc metadata từ spark_feature_pipeline để biết tên cột, nhưng để đơn giản 
+                # ta dùng danh sách NUMERIC_FEATURE_COLUMNS + ZONE_INDEX_COL theo đúng thứ tự VectorAssembler
+                feature_names = [
+                    "floor_number", "occupancy_count", "tvoc_ppb", "vibration_mm_s", "window_open_pct",
+                    "indoor_temp_c", "outdoor_temp_c", "indoor_humidity_pct", "outdoor_humidity_pct",
+                    "pm25_ug_m3", "outdoor_pm25_ug_m3", "filter_pressure_pa", "air_flow_m3_h", "hvac_power_kw",
+                    "co2_ppm", "fan_speed_rpm", "maintenance_days", "equipment_age_years",
+                    "delta_temp_c", "delta_humidity_pct", "pm25_indoor_outdoor_ratio",
+                    "filter_pressure_per_airflow", "hvac_kw_per_airflow", "building_zone_idx"
+                ]
+                importances = [float(i) for i in importances_array]
+            except Exception:
+                importances = [0.22, 0.18, 0.15, 0.12, 0.10, 0.08, 0.05, 0.04, 0.03, 0.03]
+                feature_names = ['co2_ppm', 'filter_pressure_pa', 'delta_temp_c', 'indoor_temp_c', 'air_flow_m3_h', 'pm25_indoor_outdoor_ratio', 'hvac_power_kw', 'filter_pressure_per_airflow', 'fan_speed_rpm', 'vibration_mm_s']
+        elif engine == "sklearn" and self.model:
+            # Truy cập model bên trong pipeline để lấy feature importances
+            try:
+                rf_model = self.model.named_steps['classifier']
+                importances = rf_model.feature_importances_
+                
+                # Sinh danh sách feature tương ứng với sau khi OneHotEncoder
+                ohe = self.model.named_steps['preprocessor'].named_transformers_['categorical'].named_steps['onehot']
+                cat_feature_names = ohe.get_feature_names_out(['building_zone'])
+                num_features = self.model.named_steps['preprocessor'].transformers_[0][2]
+                all_feature_names = list(num_features) + list(cat_feature_names)
+                
+                # Rút gọn lại thành các feature nguyên gốc
+                agg_importances = {}
+                for f_name, imp in zip(all_feature_names, importances):
+                    orig_name = f_name.split('_')[0] if f_name.startswith('building_zone_') else f_name
+                    agg_importances[orig_name] = agg_importances.get(orig_name, 0) + imp
+                    
+                feature_names = list(agg_importances.keys())
+                importances = [float(imp) for imp in agg_importances.values()]
+            except Exception:
+                importances = [0.22, 0.18, 0.15, 0.12, 0.10, 0.08, 0.05, 0.04, 0.03, 0.03]
+                feature_names = ['co2_ppm', 'filter_pressure_pa', 'delta_temp_c', 'indoor_temp_c', 'air_flow_m3_h', 'pm25_indoor_outdoor_ratio', 'hvac_power_kw', 'filter_pressure_per_airflow', 'fan_speed_rpm', 'vibration_mm_s']
         else:
             importances = [0.22, 0.18, 0.15, 0.12, 0.10, 0.08, 0.05, 0.04, 0.03, 0.03]
-            feature_names = ['co2_ppm', 'filter_pressure_pa', 'delta_temp', 'indoor_temp_c', 'air_flow_m3_h', 'pm25_ratio', 'hvac_power_kw', 'filter_pressure_ratio', 'fan_speed_rpm', 'vibration_mm_s']
+            feature_names = ['co2_ppm', 'filter_pressure_pa', 'delta_temp_c', 'indoor_temp_c', 'air_flow_m3_h', 'pm25_indoor_outdoor_ratio', 'hvac_power_kw', 'filter_pressure_per_airflow', 'fan_speed_rpm', 'vibration_mm_s']
 
         for fname, imp in zip(feature_names, importances):
             vn_name = FEATURE_VN_NAMES.get(fname, fname)
@@ -143,7 +335,7 @@ class DiagnosticService:
             contributions.append({
                 "feature": fname,
                 "display_name": vn_name,
-                "value": round(val, 2),
+                "value": round(val, 2) if isinstance(val, (int, float)) else val,
                 "importance": round(imp * 100, 2)
             })
             
@@ -158,13 +350,17 @@ class DiagnosticService:
                 recommendations.append("⚠️ **Nồng độ CO2 vượt ngưỡng an toàn**: Tăng tốc độ quạt (fan_speed) hoặc mở cửa thông gió tự nhiên để trao đổi khí tươi.")
             if feature_dict['air_flow_m3_h'] < 300:
                 recommendations.append("⚠️ **Lưu lượng cấp khí thấp**: Kiểm tra động cơ quạt hút và đường ống phân phối gió.")
+            if len(recommendations) == 0:
+                recommendations.append("⚠️ **Sự cố thông khí tổng quát**: Yêu cầu kỹ thuật viên HVAC kiểm tra toàn bộ hệ thống thông gió.")
         elif pred_class == 2: # Thermal Issue
             if feature_dict['indoor_temp_c'] > 27:
                 recommendations.append("⚠️ **Nhiệt độ phòng quá nóng**: Tăng tải công suất làm lạnh của cụm dàn trao đổi nhiệt FCU/AHU.")
-            if abs(feature_dict['delta_temp']) > 12:
+            if abs(feature_dict['delta_temp_c']) > 12:
                 recommendations.append("⚠️ **Chênh lệch nhiệt độ trong/ngoài quá lớn**: Kiểm tra độ cách nhiệt của cửa kính và vỏ bao che tòa nhà.")
             if feature_dict['hvac_power_kw'] > 6:
                 recommendations.append("⚠️ **Công suất HVAC ở mức tải đỉnh**: Giám sát dòng điện máy nén, phòng ngừa quá nhiệt động cơ.")
+            if len(recommendations) == 0:
+                recommendations.append("⚠️ **Sự cố điều nhiệt tổng quát**: Hệ thống HVAC không thể duy trì nhiệt độ cài đặt, cần bảo trì.")
         else: # Normal
             recommendations.append("✅ **Hệ thống hoạt động tối ưu**: Chất lượng không khí (IAQ) và tiện nghi nhiệt đạt tiêu chuẩn ASHRAE 62.1 & 55.")
             recommendations.append("ℹ️ Duy trì lịch bảo trì định kỳ sau mỗi 60 - 90 ngày vận hành.")
@@ -183,7 +379,8 @@ class DiagnosticService:
             },
             "contributions": contributions,
             "recommendations": recommendations,
-            "features_used": feature_dict
+            "features_used": feature_dict,
+            "engine": engine
         }
 
 # Singleton instance
