@@ -11,11 +11,21 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# Đảm bảo import được các module trong app và src
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Xác định thư mục gốc của dự án và thư mục hiện tại
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
 
-from app.model_service import diagnostic_service
-from app.sample_data import SAMPLE_PRESETS, BUILDING_STATS, ALL_ZONES
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+try:
+    from model_service import diagnostic_service
+    from sample_data import SAMPLE_PRESETS, BUILDING_STATS, ALL_ZONES
+except ImportError:
+    from app.model_service import diagnostic_service
+    from app.sample_data import SAMPLE_PRESETS, BUILDING_STATS, ALL_ZONES
 
 # 1. Cấu hình Trang
 st.set_page_config(
@@ -306,31 +316,32 @@ def main():
 
         # Hiển thị 5 biểu đồ thực nghiệm
         st.markdown("#### 1. Biểu Đồ Thời Gian Huấn Luyện & Điểm Giao Thoa (Cross-over Point)")
-        chart_p1 = "docs/charts/scalability_training_time.png"
+        chart_p1 = os.path.join(BASE_DIR, "docs", "charts", "scalability_training_time.png")
         if os.path.exists(chart_p1):
             st.image(chart_p1, caption="Hình 1: Điểm giao thoa tại ~820.000 dòng. Vượt qua điểm này, Spark MLlib nhanh hơn rõ rệt.")
         
         st.markdown("---")
         col_c1, col_c2 = st.columns(2)
         with col_c1:
-            chart_p2 = "docs/charts/scalability_peak_ram.png"
+            chart_p2 = os.path.join(BASE_DIR, "docs", "charts", "scalability_peak_ram.png")
             if os.path.exists(chart_p2):
                 st.image(chart_p2, caption="Hình 2: Tiêu thụ RAM đỉnh - Scikit-Learn chạm ngưỡng tràn bộ nhớ ở 2.1M dòng.")
         with col_c2:
-            chart_p3 = "docs/charts/spark_cores_speedup.png"
+            chart_p3 = os.path.join(BASE_DIR, "docs", "charts", "spark_cores_speedup.png")
             if os.path.exists(chart_p3):
                 st.image(chart_p3, caption="Hình 3: Khả năng mở rộng đa lõi trên Apache Spark (2, 4, 8 Cores).")
 
         st.markdown("---")
         col_c3, col_c4 = st.columns(2)
         with col_c3:
-            chart_p4 = "docs/charts/confusion_matrix_comparison.png"
+            chart_p4 = os.path.join(BASE_DIR, "docs", "charts", "confusion_matrix_comparison.png")
             if os.path.exists(chart_p4):
                 st.image(chart_p4, caption="Hình 4: Ma trận nhầm lẫn đối đầu giữa Scikit-Learn và Spark MLlib.")
         with col_c4:
-            chart_p5 = "docs/charts/radar_metrics_comparison.png"
+            chart_p5 = os.path.join(BASE_DIR, "docs", "charts", "radar_metrics_comparison.png")
             if os.path.exists(chart_p5):
                 st.image(chart_p5, caption="Hình 5: Đánh giá năng lực toàn diện theo 6 tiêu chí kỹ thuật.")
+
 
         st.markdown("---")
         st.markdown("#### 2. Bảng Tổng Hợp Đối Đầu Kỹ Thuật (Head-to-Head Comparison)")
