@@ -17,6 +17,8 @@ from pathlib import Path
 import pandas as pd
 import psutil
 
+import pyarrow.dataset as ds
+
 
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -169,7 +171,7 @@ TRAIN_DATA_PATH = os.path.join(
     "data",
     "processed",
     "tv2",
-    "train_features.csv"
+    "train_features.parquet"
 )
 
 TEST_DATA_PATH = os.path.join(
@@ -177,23 +179,36 @@ TEST_DATA_PATH = os.path.join(
     "data",
     "processed",
     "tv2",
-    "test_features.csv"
+    "test_features.parquet"
 )
 
 
 def load_processed_data(train_rows=200000, test_rows=50000):
     print("\n===== ĐỌC DỮ LIỆU ĐÃ XỬ LÝ CỦA TV2 =====")
 
-    train_df = pd.read_csv(
+    train_table = ds.dataset(
         TRAIN_DATA_PATH,
-        nrows=train_rows,
-        parse_dates=["recorded_at"]
+        format="parquet"
+    ).head(train_rows)
+
+    test_table = ds.dataset(
+        TEST_DATA_PATH,
+        format="parquet"
+    ).head(test_rows)
+
+    train_df = train_table.to_pandas()
+    test_df = test_table.to_pandas()
+
+    train_df["recorded_at"] = (
+        pd.to_datetime(train_df["recorded_at"], utc=True)
+        .dt.tz_convert("Asia/Ho_Chi_Minh")
+        .dt.tz_localize(None)
     )
 
-    test_df = pd.read_csv(
-        TEST_DATA_PATH,
-        nrows=test_rows,
-        parse_dates=["recorded_at"]
+    test_df["recorded_at"] = (
+        pd.to_datetime(test_df["recorded_at"], utc=True)
+        .dt.tz_convert("Asia/Ho_Chi_Minh")
+        .dt.tz_localize(None)
     )
 
     print("Train:", train_df.shape)
