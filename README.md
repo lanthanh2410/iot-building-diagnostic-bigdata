@@ -74,3 +74,7 @@ Kết quả lưu tại `models/spark_feature_pipeline/` và log đo lường t�
 ```bash
 streamlit run app/app.py
 ```
+
+**⚠️ LƯU Ý:**
+> Nhóm không đẩy file dataset lên kho lưu trữ vì dung lượng quá lớn. 
+> Trước khi chạy code, vui lòng copy file `11_iot_building_diagnostic.csv` và dán vào bên trong thư mục `data/raw/` của dự án này.
