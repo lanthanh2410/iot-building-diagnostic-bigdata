@@ -562,7 +562,20 @@ def main():
             "<hr style='border: none; border-top: 1px solid #E2E8F0; margin: 15px 0;'>",
             unsafe_allow_html=True,
         )
-        predict_btn = st.button("🚀 BẮT ĐẦU CHẨN ĐOÁN AI", type="primary")
+
+        st.markdown("#### 🧠 4. Động Cơ Phân Tích (AI Engine)")
+        engine_choice = st.radio(
+            "Chọn mô hình:",
+            options=["Scikit-Learn", "Apache Spark MLlib"],
+            index=0
+        )
+        engine = "spark" if "Spark" in engine_choice else "sklearn"
+
+        st.markdown(
+            "<hr style='border: none; border-top: 1px solid #E2E8F0; margin: 15px 0;'>",
+            unsafe_allow_html=True,
+        )
+        predict_btn = st.button("🚀 BẮT ĐẦU CHẨN ĐOÁN", type="primary")
 
     # Thu thập toàn bộ tham số đầu vào
     current_params = {
@@ -587,8 +600,15 @@ def main():
         "equipment_age_years": p.get("equipment_age_years", 3.0),
     }
 
-    # Thực hiện suy luận thời gian thực qua Diagnostic Service
-    result = diagnostic_service.predict(current_params)
+    # Thực hiện dự đoán với Session State (chỉ cập nhật kết quả khi bấm nút)
+    if 'prediction_result' not in st.session_state:
+        st.session_state['prediction_result'] = diagnostic_service.predict(current_params, engine=engine)
+        
+    if predict_btn:
+        with st.spinner(f"Đang chạy phân tích bằng {engine_choice}..."):
+            st.session_state['prediction_result'] = diagnostic_service.predict(current_params, engine=engine)
+
+    result = st.session_state['prediction_result']
 
     # ==========================================
     # GIAO DIỆN CHÍNH - 4 TABS 3D HIỆN ĐẠI
