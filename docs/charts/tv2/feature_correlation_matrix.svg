@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="982" height="817" viewBox="0 0 982 817">
+<rect width="100%" height="100%" fill="white"/>
+<style>text{font-family:Arial,sans-serif;fill:#152238}.axis{font-size:13px}.val{font-size:12px;font-weight:bold}.title{font-size:20px;font-weight:bold}</style>
+<text class="title" x="24" y="36">Training feature correlation matrix</text>
+<text x="24" y="61" font-size="12">Pearson r; class columns are one-vs-rest indicators</text>
+<text class="axis" x="300" y="287.0" text-anchor="end">delta_temp_c</text>
+<text class="axis" transform="translate(342.0,240) rotate(-55)" text-anchor="start">delta_temp_c</text>
+<text class="axis" x="300" y="351.0" text-anchor="end">delta_humidity_pct</text>
+<text class="axis" transform="translate(406.0,240) rotate(-55)" text-anchor="start">delta_humidity_pct</text>
+<text class="axis" x="300" y="415.0" text-anchor="end">pm25_indoor_outdoor_ratio</text>
+<text class="axis" transform="translate(470.0,240) rotate(-55)" text-anchor="start">pm25_indoor_outdoor_ratio</text>
+<text class="axis" x="300" y="479.0" text-anchor="end">filter_pressure_per_airflow</text>
+<text class="axis" transform="translate(534.0,240) rotate(-55)" text-anchor="start">filter_pressure_per_airflow</text>
+<text class="axis" x="300" y="543.0" text-anchor="end">hvac_kw_per_airflow</text>
+<text class="axis" transform="translate(598.0,240) rotate(-55)" text-anchor="start">hvac_kw_per_airflow</text>
+<text class="axis" x="300" y="607.0" text-anchor="end">state_normal</text>
+<text class="axis" transform="translate(662.0,240) rotate(-55)" text-anchor="start">state_normal</text>
+<text class="axis" x="300" y="671.0" text-anchor="end">state_ventilation_issue</text>
+<text class="axis" transform="translate(726.0,240) rotate(-55)" text-anchor="start">state_ventilation_issue</text>
+<text class="axis" x="300" y="735.0" text-anchor="end">state_thermal_issue</text>
+<text class="axis" transform="translate(790.0,240) rotate(-55)" text-anchor="start">state_thermal_issue</text>
+<rect x="310" y="250" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="286.0" text-anchor="middle">+1.00</text>
+<rect x="374" y="250" width="64" height="64" fill="#ebc3a8" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="286.0" text-anchor="middle">-0.44</text>
+<rect x="438" y="250" width="64" height="64" fill="#f2f5f9" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="286.0" text-anchor="middle">+0.01</text>
+<rect x="502" y="250" width="64" height="64" fill="#ecf3f8" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="286.0" text-anchor="middle">+0.04</text>
+<rect x="566" y="250" width="64" height="64" fill="#ecf3f8" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="286.0" text-anchor="middle">+0.04</text>
+<rect x="630" y="250" width="64" height="64" fill="#f5ede6" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="286.0" text-anchor="middle">-0.07</text>
+<rect x="694" y="250" width="64" height="64" fill="#f1f5f9" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="286.0" text-anchor="middle">+0.01</text>
+<rect x="758" y="250" width="64" height="64" fill="#e2edf6" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="286.0" text-anchor="middle">+0.11</text>
+<rect x="310" y="314" width="64" height="64" fill="#ebc3a8" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="350.0" text-anchor="middle">-0.44</text>
+<rect x="374" y="314" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="350.0" text-anchor="middle">+1.00</text>
+<rect x="438" y="314" width="64" height="64" fill="#e7f0f7" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="350.0" text-anchor="middle">+0.07</text>
+<rect x="502" y="314" width="64" height="64" fill="#e3edf6" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="350.0" text-anchor="middle">+0.10</text>
+<rect x="566" y="314" width="64" height="64" fill="#e2edf6" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="350.0" text-anchor="middle">+0.10</text>
+<rect x="630" y="314" width="64" height="64" fill="#f3e7de" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="350.0" text-anchor="middle">-0.12</text>
+<rect x="694" y="314" width="64" height="64" fill="#ddeaf5" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="350.0" text-anchor="middle">+0.13</text>
+<rect x="758" y="314" width="64" height="64" fill="#f2f6f9" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="350.0" text-anchor="middle">+0.01</text>
+<rect x="310" y="378" width="64" height="64" fill="#f2f5f9" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="414.0" text-anchor="middle">+0.01</text>
+<rect x="374" y="378" width="64" height="64" fill="#e7f0f7" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="414.0" text-anchor="middle">+0.07</text>
+<rect x="438" y="378" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="414.0" text-anchor="middle">+1.00</text>
+<rect x="502" y="378" width="64" height="64" fill="#95c4e8" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="414.0" text-anchor="middle">+0.55</text>
+<rect x="566" y="378" width="64" height="64" fill="#9dc8ea" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="414.0" text-anchor="middle">+0.51</text>
+<rect x="630" y="378" width="64" height="64" fill="#eabe9f" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="414.0" text-anchor="middle">-0.49</text>
+<rect x="694" y="378" width="64" height="64" fill="#8cc0e7" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="414.0" text-anchor="middle">+0.60</text>
+<rect x="758" y="378" width="64" height="64" fill="#f4ece5" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="414.0" text-anchor="middle">-0.08</text>
+<rect x="310" y="442" width="64" height="64" fill="#ecf3f8" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="478.0" text-anchor="middle">+0.04</text>
+<rect x="374" y="442" width="64" height="64" fill="#e3edf6" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="478.0" text-anchor="middle">+0.10</text>
+<rect x="438" y="442" width="64" height="64" fill="#95c4e8" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="478.0" text-anchor="middle">+0.55</text>
+<rect x="502" y="442" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="478.0" text-anchor="middle">+1.00</text>
+<rect x="566" y="442" width="64" height="64" fill="#59a5de" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="478.0" text-anchor="middle">+0.90</text>
+<rect x="630" y="442" width="64" height="64" fill="#e4a377" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="478.0" text-anchor="middle">-0.72</text>
+<rect x="694" y="442" width="64" height="64" fill="#5aa5de" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="478.0" text-anchor="middle">+0.90</text>
+<rect x="758" y="442" width="64" height="64" fill="#f3e7dd" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="478.0" text-anchor="middle">-0.13</text>
+<rect x="310" y="506" width="64" height="64" fill="#ecf3f8" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="542.0" text-anchor="middle">+0.04</text>
+<rect x="374" y="506" width="64" height="64" fill="#e2edf6" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="542.0" text-anchor="middle">+0.10</text>
+<rect x="438" y="506" width="64" height="64" fill="#9dc8ea" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="542.0" text-anchor="middle">+0.51</text>
+<rect x="502" y="506" width="64" height="64" fill="#59a5de" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="542.0" text-anchor="middle">+0.90</text>
+<rect x="566" y="506" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="542.0" text-anchor="middle">+1.00</text>
+<rect x="630" y="506" width="64" height="64" fill="#e3a072" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="542.0" text-anchor="middle">-0.74</text>
+<rect x="694" y="506" width="64" height="64" fill="#67ace0" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="542.0" text-anchor="middle">+0.82</text>
+<rect x="758" y="506" width="64" height="64" fill="#f0f4f9" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="542.0" text-anchor="middle">+0.02</text>
+<rect x="310" y="570" width="64" height="64" fill="#f5ede6" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="606.0" text-anchor="middle">-0.07</text>
+<rect x="374" y="570" width="64" height="64" fill="#f3e7de" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="606.0" text-anchor="middle">-0.12</text>
+<rect x="438" y="570" width="64" height="64" fill="#eabe9f" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="606.0" text-anchor="middle">-0.49</text>
+<rect x="502" y="570" width="64" height="64" fill="#e4a377" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="606.0" text-anchor="middle">-0.72</text>
+<rect x="566" y="570" width="64" height="64" fill="#e3a072" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="606.0" text-anchor="middle">-0.74</text>
+<rect x="630" y="570" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="606.0" text-anchor="middle">+1.00</text>
+<rect x="694" y="570" width="64" height="64" fill="#e19967" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="606.0" text-anchor="middle">-0.81</text>
+<rect x="758" y="570" width="64" height="64" fill="#eabea0" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="606.0" text-anchor="middle">-0.48</text>
+<rect x="310" y="634" width="64" height="64" fill="#f1f5f9" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="670.0" text-anchor="middle">+0.01</text>
+<rect x="374" y="634" width="64" height="64" fill="#ddeaf5" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="670.0" text-anchor="middle">+0.13</text>
+<rect x="438" y="634" width="64" height="64" fill="#8cc0e7" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="670.0" text-anchor="middle">+0.60</text>
+<rect x="502" y="634" width="64" height="64" fill="#5aa5de" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="670.0" text-anchor="middle">+0.90</text>
+<rect x="566" y="634" width="64" height="64" fill="#67ace0" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="670.0" text-anchor="middle">+0.82</text>
+<rect x="630" y="634" width="64" height="64" fill="#e19967" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="670.0" text-anchor="middle">-0.81</text>
+<rect x="694" y="634" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="670.0" text-anchor="middle">+1.00</text>
+<rect x="758" y="634" width="64" height="64" fill="#f3e7dd" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="670.0" text-anchor="middle">-0.13</text>
+<rect x="310" y="698" width="64" height="64" fill="#e2edf6" stroke="#d5dce5"/>
+<text class="val" x="342.0" y="734.0" text-anchor="middle">+0.11</text>
+<rect x="374" y="698" width="64" height="64" fill="#f2f6f9" stroke="#d5dce5"/>
+<text class="val" x="406.0" y="734.0" text-anchor="middle">+0.01</text>
+<rect x="438" y="698" width="64" height="64" fill="#f4ece5" stroke="#d5dce5"/>
+<text class="val" x="470.0" y="734.0" text-anchor="middle">-0.08</text>
+<rect x="502" y="698" width="64" height="64" fill="#f3e7dd" stroke="#d5dce5"/>
+<text class="val" x="534.0" y="734.0" text-anchor="middle">-0.13</text>
+<rect x="566" y="698" width="64" height="64" fill="#f0f4f9" stroke="#d5dce5"/>
+<text class="val" x="598.0" y="734.0" text-anchor="middle">+0.02</text>
+<rect x="630" y="698" width="64" height="64" fill="#eabea0" stroke="#d5dce5"/>
+<text class="val" x="662.0" y="734.0" text-anchor="middle">-0.48</text>
+<rect x="694" y="698" width="64" height="64" fill="#f3e7dd" stroke="#d5dce5"/>
+<text class="val" x="726.0" y="734.0" text-anchor="middle">-0.13</text>
+<rect x="758" y="698" width="64" height="64" fill="#499cdb" stroke="#d5dce5"/>
+<text class="val" x="790.0" y="734.0" text-anchor="middle">+1.00</text>
+</svg>
