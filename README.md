@@ -76,7 +76,13 @@ python src/05_spark_tuning.py
 ```bash
 python src/06_benchmark.py
 ```
-*(Biểu đồ đối đầu lưu tại `docs/charts/`)*
+*(Kết quả số liệu được lưu tại `docs/logs/`)*
+
+Sau đó, tiến hành vẽ biểu đồ đối đầu từ các số liệu vừa sinh ra:
+```bash
+python src/utils/generate_charts.py
+```
+*(Các biểu đồ so sánh như Scalability, Confusion Matrix, Radar... lưu tại `docs/charts/`)*
 
 #### Bước 7: Khởi chạy Web Dashboard Demo
 Khởi động giao diện giám sát tòa nhà thời gian thực:
